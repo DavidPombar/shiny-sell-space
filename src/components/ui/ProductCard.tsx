@@ -1,10 +1,10 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { analyticsHelper } from "@/utils/analytics";
 
 interface ProductCardProps {
   product: Product;
@@ -26,6 +26,11 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     addItem(product);
+    analyticsHelper.pushAddToCart(product);
+  };
+
+  const handleProductClick = () => {
+    analyticsHelper.pushViewItem(product);
   };
 
   return (
@@ -34,6 +39,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       className="group block"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={handleProductClick}
     >
       <div className="relative overflow-hidden rounded-lg aspect-square bg-gray-100 mb-4">
         <img

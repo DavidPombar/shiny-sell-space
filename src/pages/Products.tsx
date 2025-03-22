@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import Navbar from "@/components/layout/Navbar";
@@ -8,6 +7,7 @@ import { products } from "@/lib/products";
 import Cart from "./Cart";
 import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { analyticsHelper } from "@/utils/analytics";
 
 const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -22,164 +22,99 @@ const Products = () => {
     : products;
 
   useEffect(() => {
+    // Track view_item_list event when component mounts or category changes
+    analyticsHelper.pushViewItemList(filteredProducts, selectedCategory || "All Products");
+  }, [filteredProducts, selectedCategory]);
+
+  useEffect(() => {
     // Close filter sidebar when selecting a category on mobile
     if (selectedCategory && window.innerWidth < 768) {
       setIsFilterOpen(false);
     }
   }, [selectedCategory]);
 
+  const handleCategorySelect = (category: string | null) => {
+    setSelectedCategory(category);
+    analyticsHelper.pushFilter("category", category || "all");
+  };
+
   return (
     <>
       <Helmet>
-        <title>Products - MINIMAL</title>
-        <meta name="description" content="Browse our collection of premium tech products." />
+        <title>Products | MINIMAL</title>
+        <meta name="description" content="Browse our collection of products" />
       </Helmet>
-      
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        
-        <main className="flex-1 pt-24 pb-16">
-          <div className="container mx-auto px-4">
-            <div className="mb-12">
-              <h1 className="text-3xl md:text-4xl font-medium mb-4">All Products</h1>
-              <p className="text-gray-600 max-w-2xl">
-                Browse our curated collection of premium tech products designed with an emphasis on quality, functionality, and minimalist aesthetics.
-              </p>
-            </div>
+
+      <Navbar />
+      <Cart />
+
+      <main className="pt-24 pb-16">
+        <div className="container mx-auto px-4">
+          {/* Header */}
+          <div className="flex justify-between items-center mb-8">
+            <h1 className="text-3xl font-medium">All Products</h1>
             
-            <div className="flex flex-col md:flex-row gap-8">
-              {/* Mobile Filter Button */}
-              <div className="md:hidden mb-4">
-                <Button 
-                  variant="outline" 
-                  className="w-full flex items-center justify-center" 
-                  onClick={() => setIsFilterOpen(true)}
-                >
-                  <Filter className="mr-2 h-4 w-4" />
-                  Filter Products
-                </Button>
-              </div>
-              
-              {/* Sidebar Filter - Desktop */}
-              <div className="w-64 hidden md:block">
-                <div className="sticky top-24">
-                  <h3 className="text-lg font-medium mb-4">Categories</h3>
-                  <ul className="space-y-2">
-                    <li>
-                      <button
-                        className={`text-sm ${
-                          selectedCategory === null
-                            ? "font-medium text-black"
-                            : "text-gray-600 hover:text-black"
-                        }`}
-                        onClick={() => setSelectedCategory(null)}
-                      >
-                        All Products
-                      </button>
-                    </li>
-                    {categories.map((category) => (
-                      <li key={category}>
-                        <button
-                          className={`text-sm capitalize ${
-                            selectedCategory === category
-                              ? "font-medium text-black"
-                              : "text-gray-600 hover:text-black"
-                          }`}
-                          onClick={() => setSelectedCategory(category)}
-                        >
-                          {category}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-              
-              {/* Mobile Filter Sidebar */}
-              <div
-                className={`fixed inset-0 z-50 bg-white p-6 transform transition-transform duration-300 ease-in-out md:hidden ${
-                  isFilterOpen ? "translate-x-0" : "-translate-x-full"
-                }`}
-              >
-                <div className="flex justify-between items-center mb-6">
-                  <h3 className="text-lg font-medium">Filter</h3>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => setIsFilterOpen(false)}
+            {/* Mobile Filter Button */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="md:hidden"
+              onClick={() => setIsFilterOpen(!isFilterOpen)}
+            >
+              {isFilterOpen ? <X className="h-5 w-5" /> : <Filter className="h-5 w-5" />}
+            </Button>
+          </div>
+
+          <div className="flex gap-8">
+            {/* Filter Sidebar */}
+            <aside
+              className={`fixed inset-y-0 left-0 w-64 bg-white border-r transform transition-transform duration-300 ease-in-out z-40 md:relative md:translate-x-0 ${
+                isFilterOpen ? "translate-x-0" : "-translate-x-full"
+              }`}
+            >
+              <div className="p-6">
+                <h2 className="text-lg font-medium mb-4">Categories</h2>
+                <div className="space-y-2">
+                  <button
+                    onClick={() => handleCategorySelect(null)}
+                    className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                      !selectedCategory
+                        ? "bg-black text-white"
+                        : "hover:bg-gray-100"
+                    }`}
                   >
-                    <X className="h-5 w-5" />
-                  </Button>
-                </div>
-                
-                <h4 className="text-sm uppercase tracking-wider text-gray-500 mb-3">
-                  Categories
-                </h4>
-                <ul className="space-y-4">
-                  <li>
-                    <button
-                      className={`text-base ${
-                        selectedCategory === null
-                          ? "font-medium text-black"
-                          : "text-gray-600"
-                      }`}
-                      onClick={() => setSelectedCategory(null)}
-                    >
-                      All Products
-                    </button>
-                  </li>
+                    All Products
+                  </button>
                   {categories.map((category) => (
-                    <li key={category}>
-                      <button
-                        className={`text-base capitalize ${
-                          selectedCategory === category
-                            ? "font-medium text-black"
-                            : "text-gray-600"
-                        }`}
-                        onClick={() => setSelectedCategory(category)}
-                      >
-                        {category}
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              
-              {/* Products Grid */}
-              <div className="flex-1">
-                {selectedCategory && (
-                  <div className="mb-6 flex items-center">
-                    <span className="text-sm bg-gray-100 py-1 px-3 rounded-full capitalize">
-                      {selectedCategory}
-                    </span>
                     <button
-                      className="ml-2 text-xs text-gray-500 hover:text-black"
-                      onClick={() => setSelectedCategory(null)}
+                      key={category}
+                      onClick={() => handleCategorySelect(category)}
+                      className={`block w-full text-left px-4 py-2 rounded-lg transition-colors ${
+                        selectedCategory === category
+                          ? "bg-black text-white"
+                          : "hover:bg-gray-100"
+                      }`}
                     >
-                      Clear
+                      {category}
                     </button>
-                  </div>
-                )}
-                
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
-                  {filteredProducts.map((product) => (
-                    <ProductCard key={product.id} product={product} />
                   ))}
                 </div>
-                
-                {filteredProducts.length === 0 && (
-                  <div className="text-center py-12">
-                    <p className="text-gray-600">No products found.</p>
-                  </div>
-                )}
+              </div>
+            </aside>
+
+            {/* Product Grid */}
+            <div className="flex-1">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredProducts.map((product) => (
+                  <ProductCard key={product.id} product={product} />
+                ))}
               </div>
             </div>
           </div>
-        </main>
-        
-        <Footer />
-        <Cart />
-      </div>
+        </div>
+      </main>
+
+      <Footer />
     </>
   );
 };
