@@ -4,7 +4,6 @@ import { Helmet } from "react-helmet";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import ProductCard from "@/components/ui/ProductCard";
-import { CartProvider } from "@/context/CartContext";
 import { products } from "@/lib/products";
 import Cart from "./Cart";
 import { Filter, X } from "lucide-react";
@@ -30,7 +29,7 @@ const Products = () => {
   }, [selectedCategory]);
 
   return (
-    <CartProvider>
+    <>
       <Helmet>
         <title>Products - MINIMAL</title>
         <meta name="description" content="Browse our collection of premium tech products." />
@@ -181,7 +180,7 @@ const Products = () => {
         <Footer />
         <Cart />
       </div>
-    </CartProvider>
+    </>
   );
 };
 

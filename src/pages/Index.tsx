@@ -4,12 +4,11 @@ import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/sections/Hero";
 import FeaturedProducts from "@/components/sections/FeaturedProducts";
-import { CartProvider } from "@/context/CartContext";
 import Cart from "./Cart";
 
 const Index = () => {
   return (
-    <CartProvider>
+    <>
       <Helmet>
         <title>MINIMAL - Premium Tech Products</title>
         <meta name="description" content="Discover premium tech products with an emphasis on design, quality, and simplicity." />
@@ -28,7 +27,7 @@ const Index = () => {
         <Footer />
         <Cart />
       </div>
-    </CartProvider>
+    </>
   );
 };
 
