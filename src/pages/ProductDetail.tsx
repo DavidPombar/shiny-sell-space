@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
@@ -10,6 +9,7 @@ import Footer from "@/components/layout/Footer";
 import { getProductById } from "@/lib/products";
 import { useCart } from "@/context/CartContext";
 import Cart from "./Cart";
+import { trackViewItem, trackAddToCart } from "@/utils/analytics";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -25,6 +25,9 @@ const ProductDetail = () => {
   useEffect(() => {
     if (!product) {
       navigate("/products");
+    } else {
+      // Track product view
+      trackViewItem(product);
     }
   }, [product, navigate]);
 
@@ -39,6 +42,7 @@ const ProductDetail = () => {
   // Handle add to cart
   const handleAddToCart = () => {
     addItem(product, quantity);
+    trackAddToCart(product, quantity);
   };
 
   return (

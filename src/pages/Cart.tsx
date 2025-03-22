@@ -1,10 +1,10 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ShoppingBag, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CartItem from "@/components/ui/CartItem";
 import { useCart } from "@/context/CartContext";
+import { trackViewCart, trackBeginCheckout } from "@/utils/analytics";
 
 const Cart = () => {
   const { 
@@ -22,16 +22,21 @@ const Cart = () => {
     const body = document.body;
     if (isCartOpen) {
       body.style.overflow = "hidden";
+      // Track cart view when opened
+      if (items.length > 0) {
+        trackViewCart(items);
+      }
     } else {
       body.style.overflow = "";
     }
     return () => {
       body.style.overflow = "";
     };
-  }, [isCartOpen]);
+  }, [isCartOpen, items]);
 
   const handleCheckout = () => {
     toggleCart(); // Close the cart
+    trackBeginCheckout(items); // Track begin checkout
     navigate("/checkout"); // Navigate to checkout page
   };
 

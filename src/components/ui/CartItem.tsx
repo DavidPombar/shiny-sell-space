@@ -1,8 +1,8 @@
-
 import { Minus, Plus, X } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { trackRemoveFromCart } from "@/utils/analytics";
 
 interface CartItemProps {
   product: Product;
@@ -11,6 +11,15 @@ interface CartItemProps {
 
 const CartItem = ({ product, quantity }: CartItemProps) => {
   const { updateQuantity, removeItem } = useCart();
+
+  const handleRemoveItem = () => {
+    trackRemoveFromCart(product, quantity);
+    removeItem(product.id);
+  };
+
+  const handleUpdateQuantity = (newQuantity: number) => {
+    updateQuantity(product.id, newQuantity);
+  };
 
   return (
     <div className="flex py-4 border-b border-gray-100 animate-fade-in">
@@ -31,7 +40,7 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
             variant="ghost"
             size="icon"
             className="h-6 w-6 text-gray-500 hover:text-black -mt-1 -mr-1"
-            onClick={() => removeItem(product.id)}
+            onClick={handleRemoveItem}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -48,7 +57,7 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-gray-500 hover:text-black"
-              onClick={() => updateQuantity(product.id, quantity - 1)}
+              onClick={() => handleUpdateQuantity(quantity - 1)}
               disabled={quantity <= 1}
             >
               <Minus className="h-3 w-3" />
@@ -60,7 +69,7 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-gray-500 hover:text-black"
-              onClick={() => updateQuantity(product.id, quantity + 1)}
+              onClick={() => handleUpdateQuantity(quantity + 1)}
             >
               <Plus className="h-3 w-3" />
             </Button>

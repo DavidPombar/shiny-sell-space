@@ -1,10 +1,10 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { trackAddToCart } from "@/utils/analytics";
 
 interface ProductCardProps {
   product: Product;
@@ -26,6 +26,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
     e.preventDefault();
     e.stopPropagation();
     addItem(product);
+    trackAddToCart(product, 1);
   };
 
   return (

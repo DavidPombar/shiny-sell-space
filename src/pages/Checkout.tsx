@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -14,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { trackBeginCheckout, trackPurchase } from "@/utils/analytics";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -49,6 +49,13 @@ const Checkout = () => {
     },
   });
 
+  // Track begin checkout on page load
+  useEffect(() => {
+    if (items.length > 0) {
+      trackBeginCheckout(items);
+    }
+  }, []); // Run only once on component mount
+
   // If cart is empty, redirect to products page
   if (items.length === 0 && !isOrderComplete) {
     navigate("/products");
@@ -63,6 +70,13 @@ const Checkout = () => {
       const randomOrderNumber = Math.floor(100000 + Math.random() * 900000).toString();
       setOrderNumber(randomOrderNumber);
       setIsOrderComplete(true);
+      
+      // Track purchase
+      const taxRate = 0.08;
+      const taxAmount = totalPrice * taxRate;
+      const shippingCost = 0;
+      trackPurchase(randomOrderNumber, items, taxAmount, shippingCost);
+      
       clearCart();
       setIsSubmitting(false);
     }, 1500);
