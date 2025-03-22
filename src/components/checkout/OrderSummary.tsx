@@ -1,6 +1,7 @@
-
+import { useEffect } from "react";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Product } from "@/lib/products";
+import { analyticsHelper } from "@/utils/analytics";
 
 interface OrderSummaryProps {
   items: Array<{
@@ -15,6 +16,11 @@ const OrderSummary = ({ items, totalPrice }: OrderSummaryProps) => {
   const taxRate = 0.08; // 8% tax
   const taxAmount = totalPrice * taxRate;
   const orderTotal = totalPrice + taxAmount + shippingCost;
+
+  useEffect(() => {
+    // Track begin_checkout event when the component mounts
+    analyticsHelper.pushBeginCheckout(items, orderTotal);
+  }, [items, orderTotal]);
 
   return (
     <Card>
