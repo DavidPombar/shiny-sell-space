@@ -1,5 +1,6 @@
 
 import { useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { X, ShoppingBag, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CartItem from "@/components/ui/CartItem";
@@ -14,6 +15,7 @@ const Cart = () => {
     totalPrice,
     clearCart
   } = useCart();
+  const navigate = useNavigate();
 
   // Prevent body scrolling when cart is open
   useEffect(() => {
@@ -27,6 +29,11 @@ const Cart = () => {
       body.style.overflow = "";
     };
   }, [isCartOpen]);
+
+  const handleCheckout = () => {
+    toggleCart(); // Close the cart
+    navigate("/checkout"); // Navigate to checkout page
+  };
 
   return (
     <>
@@ -92,7 +99,7 @@ const Cart = () => {
               <p className="text-gray-500 text-sm mb-4">
                 Shipping and taxes calculated at checkout
               </p>
-              <Button className="w-full mb-2">
+              <Button className="w-full mb-2" onClick={handleCheckout}>
                 Checkout
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
