@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
@@ -10,6 +9,7 @@ import Footer from "@/components/layout/Footer";
 import { getProductById } from "@/lib/products";
 import { useCart } from "@/context/CartContext";
 import Cart from "./Cart";
+import { trackViewItem, trackAddToCart } from "@/lib/analytics";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -21,10 +21,17 @@ const ProductDetail = () => {
   // Get product data
   const product = id ? getProductById(id) : undefined;
 
-  // Redirect if product doesn't exist
+  // Track product view and handle non-existent products
   useEffect(() => {
     if (!product) {
       navigate("/products");
+    } else {
+      trackViewItem({
+        item_id: product.id,
+        item_name: product.name,
+        price: product.price,
+        category: product.category
+      });
     }
   }, [product, navigate]);
 
@@ -38,6 +45,13 @@ const ProductDetail = () => {
 
   // Handle add to cart
   const handleAddToCart = () => {
+    trackAddToCart({
+      item_id: product.id,
+      item_name: product.name,
+      price: product.price,
+      quantity: quantity,
+      category: product.category
+    });
     addItem(product, quantity);
   };
 

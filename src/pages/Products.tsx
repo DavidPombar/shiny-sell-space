@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import Navbar from "@/components/layout/Navbar";
@@ -8,6 +7,7 @@ import { products } from "@/lib/products";
 import Cart from "./Cart";
 import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trackCustomEvent } from "@/lib/analytics";
 
 const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -21,12 +21,36 @@ const Products = () => {
     ? products.filter((product) => product.category === selectedCategory)
     : products;
 
+  // Track initial page view and product list view
   useEffect(() => {
+    trackCustomEvent('view_item_list', {
+      list_name: selectedCategory || 'all_products',
+      items: filteredProducts.map(product => ({
+        item_id: product.id,
+        item_name: product.name,
+        price: product.price,
+        category: product.category
+      }))
+    });
+  }, [selectedCategory, filteredProducts]);
+
+  const handleCategorySelect = (category: string | null) => {
+    if (category !== selectedCategory) {
+      trackCustomEvent('filter_applied', {
+        filter_type: 'category',
+        filter_value: category || 'all',
+        products_count: category 
+          ? products.filter(p => p.category === category).length 
+          : products.length
+      });
+      setSelectedCategory(category);
+    }
+    
     // Close filter sidebar when selecting a category on mobile
-    if (selectedCategory && window.innerWidth < 768) {
+    if (category && window.innerWidth < 768) {
       setIsFilterOpen(false);
     }
-  }, [selectedCategory]);
+  };
 
   return (
     <>
@@ -72,7 +96,7 @@ const Products = () => {
                             ? "font-medium text-black"
                             : "text-gray-600 hover:text-black"
                         }`}
-                        onClick={() => setSelectedCategory(null)}
+                        onClick={() => handleCategorySelect(null)}
                       >
                         All Products
                       </button>
@@ -85,7 +109,7 @@ const Products = () => {
                               ? "font-medium text-black"
                               : "text-gray-600 hover:text-black"
                           }`}
-                          onClick={() => setSelectedCategory(category)}
+                          onClick={() => handleCategorySelect(category)}
                         >
                           {category}
                         </button>
@@ -123,7 +147,7 @@ const Products = () => {
                           ? "font-medium text-black"
                           : "text-gray-600"
                       }`}
-                      onClick={() => setSelectedCategory(null)}
+                      onClick={() => handleCategorySelect(null)}
                     >
                       All Products
                     </button>
@@ -136,7 +160,7 @@ const Products = () => {
                             ? "font-medium text-black"
                             : "text-gray-600"
                         }`}
-                        onClick={() => setSelectedCategory(category)}
+                        onClick={() => handleCategorySelect(category)}
                       >
                         {category}
                       </button>
@@ -154,7 +178,7 @@ const Products = () => {
                     </span>
                     <button
                       className="ml-2 text-xs text-gray-500 hover:text-black"
-                      onClick={() => setSelectedCategory(null)}
+                      onClick={() => handleCategorySelect(null)}
                     >
                       Clear
                     </button>

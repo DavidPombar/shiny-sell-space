@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -14,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { trackBeginCheckout, trackPurchase } from "@/lib/analytics";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -36,6 +36,19 @@ const Checkout = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOrderComplete, setIsOrderComplete] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+
+  // Track begin_checkout event when component mounts
+  useEffect(() => {
+    if (items.length > 0) {
+      const analyticsItems = items.map(item => ({
+        item_id: item.product.id,
+        item_name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity
+      }));
+      trackBeginCheckout(analyticsItems, totalPrice);
+    }
+  }, []);
 
   // Initialize form
   const form = useForm<CheckoutFormValues>({
@@ -61,6 +74,27 @@ const Checkout = () => {
     setTimeout(() => {
       // Generate random order number
       const randomOrderNumber = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Track purchase event
+      const analyticsItems = items.map(item => ({
+        item_id: item.product.id,
+        item_name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity
+      }));
+      
+      // Assuming tax is 10% and shipping is $5
+      const tax = totalPrice * 0.1;
+      const shipping = 5;
+      
+      trackPurchase(
+        randomOrderNumber,
+        analyticsItems,
+        totalPrice + tax + shipping,
+        tax,
+        shipping
+      );
+      
       setOrderNumber(randomOrderNumber);
       setIsOrderComplete(true);
       clearCart();

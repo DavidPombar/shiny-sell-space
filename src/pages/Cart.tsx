@@ -1,10 +1,10 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ShoppingBag, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CartItem from "@/components/ui/CartItem";
 import { useCart } from "@/context/CartContext";
+import { trackViewCart, trackBeginCheckout, trackCustomEvent } from "@/lib/analytics";
 
 const Cart = () => {
   const { 
@@ -16,6 +16,19 @@ const Cart = () => {
     clearCart
   } = useCart();
   const navigate = useNavigate();
+
+  // Track cart view when opened
+  useEffect(() => {
+    if (isCartOpen && items.length > 0) {
+      const analyticsItems = items.map(item => ({
+        item_id: item.product.id,
+        item_name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+      }));
+      trackViewCart(analyticsItems, totalPrice);
+    }
+  }, [isCartOpen, items, totalPrice]);
 
   // Prevent body scrolling when cart is open
   useEffect(() => {
@@ -31,8 +44,23 @@ const Cart = () => {
   }, [isCartOpen]);
 
   const handleCheckout = () => {
+    const analyticsItems = items.map(item => ({
+      item_id: item.product.id,
+      item_name: item.product.name,
+      price: item.product.price,
+      quantity: item.quantity,
+    }));
+    trackBeginCheckout(analyticsItems, totalPrice);
     toggleCart(); // Close the cart
     navigate("/checkout"); // Navigate to checkout page
+  };
+
+  const handleClearCart = () => {
+    trackCustomEvent('clear_cart', {
+      cart_total: totalPrice,
+      items_count: totalItems
+    });
+    clearCart();
   };
 
   return (
@@ -106,7 +134,7 @@ const Cart = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={clearCart}
+                onClick={handleClearCart}
               >
                 Clear Cart
               </Button>

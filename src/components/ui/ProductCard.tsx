@@ -1,10 +1,10 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { trackAddToCart } from "@/lib/analytics";
 
 interface ProductCardProps {
   product: Product;
@@ -25,6 +25,12 @@ const ProductCard = ({ product }: ProductCardProps) => {
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    trackAddToCart({
+      item_id: product.id,
+      item_name: product.name,
+      price: product.price,
+      quantity: 1
+    });
     addItem(product);
   };
 
