@@ -1,10 +1,10 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ShoppingBag, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import CartItem from "@/components/ui/CartItem";
 import { useCart } from "@/context/CartContext";
+import { trackUserInteraction, trackEcommerceEvent } from "@/lib/analytics";
 
 const Cart = () => {
   const { 
@@ -16,6 +16,23 @@ const Cart = () => {
     clearCart
   } = useCart();
   const navigate = useNavigate();
+
+  // Track cart view when opened
+  useEffect(() => {
+    if (isCartOpen && items.length > 0) {
+      trackEcommerceEvent('view_cart', {
+        currency: 'EUR',
+        value: totalPrice,
+        items: items.map(item => ({
+          item_id: item.product.id,
+          item_name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          item_category: item.product.category
+        }))
+      });
+    }
+  }, [isCartOpen, items, totalPrice]);
 
   // Prevent body scrolling when cart is open
   useEffect(() => {
@@ -31,8 +48,58 @@ const Cart = () => {
   }, [isCartOpen]);
 
   const handleCheckout = () => {
+    // Track begin_checkout event
+    trackEcommerceEvent('begin_checkout', {
+      currency: 'EUR',
+      value: totalPrice,
+      items: items.map(item => ({
+        item_id: item.product.id,
+        item_name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        item_category: item.product.category
+      }))
+    });
+
     toggleCart(); // Close the cart
     navigate("/checkout"); // Navigate to checkout page
+  };
+
+  const handleClearCart = () => {
+    // Track remove_from_cart events for all items
+    items.forEach(item => {
+      trackEcommerceEvent('remove_from_cart', {
+        currency: 'EUR',
+        value: item.product.price * item.quantity,
+        items: [{
+          item_id: item.product.id,
+          item_name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          item_category: item.product.category
+        }]
+      });
+    });
+
+    // Track clear_cart interaction
+    trackUserInteraction('clear_cart', {
+      element_type: 'button',
+      element_text: 'Clear Cart',
+      items_count: totalItems,
+      total_value: totalPrice
+    });
+
+    clearCart();
+  };
+
+  const handleToggleCart = () => {
+    trackUserInteraction('toggle_cart', {
+      element_type: 'button',
+      element_text: isCartOpen ? 'Close Cart' : 'Open Cart',
+      items_count: totalItems,
+      total_value: totalPrice
+    });
+    toggleCart();
   };
 
   return (
@@ -59,7 +126,7 @@ const Cart = () => {
               variant="ghost"
               size="icon"
               className="rounded-full"
-              onClick={toggleCart}
+              onClick={handleToggleCart}
             >
               <X className="h-5 w-5" />
             </Button>
@@ -74,7 +141,7 @@ const Cart = () => {
                 <p className="text-gray-500 mb-4">
                   Looks like you haven't added any products to your cart yet.
                 </p>
-                <Button onClick={toggleCart}>Continue Shopping</Button>
+                <Button onClick={handleToggleCart}>Continue Shopping</Button>
               </div>
             ) : (
               <div className="space-y-1">
@@ -106,7 +173,7 @@ const Cart = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={clearCart}
+                onClick={handleClearCart}
               >
                 Clear Cart
               </Button>
@@ -119,7 +186,7 @@ const Cart = () => {
       {isCartOpen && (
         <div
           className="fixed inset-0 z-40 bg-black/20 backdrop-blur-sm transition-opacity"
-          onClick={toggleCart}
+          onClick={handleToggleCart}
         ></div>
       )}
     </>

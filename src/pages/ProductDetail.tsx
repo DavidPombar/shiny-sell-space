@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
@@ -10,6 +9,7 @@ import Footer from "@/components/layout/Footer";
 import { getProductById } from "@/lib/products";
 import { useCart } from "@/context/CartContext";
 import Cart from "./Cart";
+import { trackPageView, trackViewItem, trackAddToCart, trackUserInteraction } from "@/lib/analytics";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,6 +20,22 @@ const ProductDetail = () => {
 
   // Get product data
   const product = id ? getProductById(id) : undefined;
+
+  // Track page view and product view
+  useEffect(() => {
+    if (product) {
+      // Track page view
+      trackPageView();
+      
+      // Track product view
+      trackViewItem({
+        item_id: product.id,
+        item_name: product.name,
+        price: product.price,
+        item_category: product.category
+      });
+    }
+  }, [product]);
 
   // Redirect if product doesn't exist
   useEffect(() => {
@@ -33,12 +49,49 @@ const ProductDetail = () => {
   }
 
   // Handle quantity changes
-  const increaseQuantity = () => setQuantity((prev) => prev + 1);
-  const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  const increaseQuantity = () => {
+    setQuantity((prev) => prev + 1);
+    trackUserInteraction('adjust_quantity', {
+      element_type: 'button',
+      element_text: 'Increase Quantity',
+      product_id: product.id,
+      product_name: product.name,
+      new_quantity: quantity + 1
+    });
+  };
+
+  const decreaseQuantity = () => {
+    const newQuantity = quantity > 1 ? quantity - 1 : 1;
+    setQuantity(newQuantity);
+    trackUserInteraction('adjust_quantity', {
+      element_type: 'button',
+      element_text: 'Decrease Quantity',
+      product_id: product.id,
+      product_name: product.name,
+      new_quantity: newQuantity
+    });
+  };
 
   // Handle add to cart
   const handleAddToCart = () => {
     addItem(product, quantity);
+    trackAddToCart({
+      item_id: product.id,
+      item_name: product.name,
+      price: product.price,
+      quantity: quantity,
+      item_category: product.category
+    });
+  };
+
+  // Handle tab changes
+  const handleTabChange = (value: string) => {
+    trackUserInteraction('view_product_tab', {
+      element_type: 'tab',
+      element_text: value,
+      product_id: product.id,
+      product_name: product.name
+    });
   };
 
   return (
@@ -60,6 +113,14 @@ const ProductDetail = () => {
                   src={product.image}
                   alt={product.name}
                   className="w-full h-full object-cover"
+                  onClick={() => {
+                    trackUserInteraction('view_product_image', {
+                      element_type: 'image',
+                      element_text: product.name,
+                      product_id: product.id,
+                      product_name: product.name
+                    });
+                  }}
                 />
               </div>
             </div>
@@ -133,7 +194,7 @@ const ProductDetail = () => {
               </div>
 
               {/* Product Information Tabs */}
-              <Tabs defaultValue="details" className="w-full mt-8">
+              <Tabs defaultValue="details" className="w-full mt-8" onValueChange={handleTabChange}>
                 <TabsList className="w-full border-b rounded-none bg-transparent justify-start space-x-8">
                   <TabsTrigger 
                     value="details"

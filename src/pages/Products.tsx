@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import Navbar from "@/components/layout/Navbar";
@@ -8,6 +7,7 @@ import { products } from "@/lib/products";
 import Cart from "./Cart";
 import { Filter, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { trackPageView, trackViewItemList, trackUserInteraction } from "@/lib/analytics";
 
 const Products = () => {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -22,11 +22,47 @@ const Products = () => {
     : products;
 
   useEffect(() => {
+    // Track page view on component mount
+    trackPageView();
+    
+    // Track initial product list view
+    trackViewItemList(
+      products.map(product => ({
+        item_id: product.id,
+        item_name: product.name,
+        price: product.price,
+        item_category: product.category
+      })),
+      'all_products'
+    );
+  }, []);
+
+  useEffect(() => {
+    // Track filtered product list view when category changes
+    if (selectedCategory) {
+      trackViewItemList(
+        filteredProducts.map(product => ({
+          item_id: product.id,
+          item_name: product.name,
+          price: product.price,
+          item_category: product.category
+        })),
+        selectedCategory
+      );
+
+      // Track filter interaction
+      trackUserInteraction('filter_products', {
+        element_type: 'category_filter',
+        element_text: selectedCategory,
+        filter_type: 'category'
+      });
+    }
+
     // Close filter sidebar when selecting a category on mobile
     if (selectedCategory && window.innerWidth < 768) {
       setIsFilterOpen(false);
     }
-  }, [selectedCategory]);
+  }, [selectedCategory, filteredProducts]);
 
   return (
     <>
@@ -53,7 +89,14 @@ const Products = () => {
                 <Button 
                   variant="outline" 
                   className="w-full flex items-center justify-center" 
-                  onClick={() => setIsFilterOpen(true)}
+                  onClick={() => {
+                    setIsFilterOpen(true);
+                    trackUserInteraction('open_filter', {
+                      element_type: 'button',
+                      element_text: 'Filter Products',
+                      device_type: 'mobile'
+                    });
+                  }}
                 >
                   <Filter className="mr-2 h-4 w-4" />
                   Filter Products
@@ -106,7 +149,14 @@ const Products = () => {
                   <Button
                     variant="ghost"
                     size="icon"
-                    onClick={() => setIsFilterOpen(false)}
+                    onClick={() => {
+                      setIsFilterOpen(false);
+                      trackUserInteraction('close_filter', {
+                        element_type: 'button',
+                        element_text: 'Close Filter',
+                        device_type: 'mobile'
+                      });
+                    }}
                   >
                     <X className="h-5 w-5" />
                   </Button>
@@ -154,7 +204,14 @@ const Products = () => {
                     </span>
                     <button
                       className="ml-2 text-xs text-gray-500 hover:text-black"
-                      onClick={() => setSelectedCategory(null)}
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        trackUserInteraction('clear_filter', {
+                          element_type: 'button',
+                          element_text: 'Clear',
+                          filter_type: 'category'
+                        });
+                      }}
                     >
                       Clear
                     </button>

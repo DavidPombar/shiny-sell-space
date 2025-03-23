@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -14,6 +13,7 @@ import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { trackPageView, trackEcommerceEvent, trackUserInteraction } from "@/lib/analytics";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -37,6 +37,27 @@ const Checkout = () => {
   const [isOrderComplete, setIsOrderComplete] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
 
+  // Track page view and checkout steps
+  useEffect(() => {
+    // Track page view
+    trackPageView();
+
+    // Track checkout step 1 (shipping info)
+    if (items.length > 0) {
+      trackEcommerceEvent('begin_checkout', {
+        currency: 'EUR',
+        value: totalPrice,
+        items: items.map(item => ({
+          item_id: item.product.id,
+          item_name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          item_category: item.product.category
+        }))
+      });
+    }
+  }, []);
+
   // Initialize form
   const form = useForm<CheckoutFormValues>({
     resolver: zodResolver(checkoutFormSchema),
@@ -57,11 +78,40 @@ const Checkout = () => {
   const onSubmit = (values: CheckoutFormValues) => {
     setIsSubmitting(true);
     
+    // Track shipping info submission
+    trackEcommerceEvent('add_shipping_info', {
+      currency: 'EUR',
+      value: totalPrice,
+      items: items.map(item => ({
+        item_id: item.product.id,
+        item_name: item.product.name,
+        price: item.product.price,
+        quantity: item.quantity,
+        item_category: item.product.category
+      })),
+      shipping_tier: 'standard'
+    });
+    
     // Simulate order processing
     setTimeout(() => {
       // Generate random order number
       const randomOrderNumber = Math.floor(100000 + Math.random() * 900000).toString();
       setOrderNumber(randomOrderNumber);
+      
+      // Track successful purchase
+      trackEcommerceEvent('purchase', {
+        transaction_id: randomOrderNumber,
+        currency: 'EUR',
+        value: totalPrice,
+        items: items.map(item => ({
+          item_id: item.product.id,
+          item_name: item.product.name,
+          price: item.product.price,
+          quantity: item.quantity,
+          item_category: item.product.category
+        }))
+      });
+
       setIsOrderComplete(true);
       clearCart();
       setIsSubmitting(false);
@@ -69,7 +119,21 @@ const Checkout = () => {
   };
 
   const returnToShopping = () => {
+    trackUserInteraction('post_purchase_action', {
+      element_type: 'button',
+      element_text: 'Continue Shopping',
+      order_number: orderNumber
+    });
     navigate("/products");
+  };
+
+  const handleBackClick = () => {
+    trackUserInteraction('navigation', {
+      element_type: 'button',
+      element_text: 'Back',
+      from_page: 'checkout'
+    });
+    navigate(-1);
   };
 
   return (
@@ -103,7 +167,7 @@ const Checkout = () => {
             ) : (
               <>
                 <div className="mb-8">
-                  <Button variant="ghost" onClick={() => navigate(-1)} className="mb-4">
+                  <Button variant="ghost" onClick={handleBackClick} className="mb-4">
                     <ArrowLeft className="mr-2 h-4 w-4" /> Back
                   </Button>
                   <h1 className="text-3xl font-medium mb-2">Checkout</h1>

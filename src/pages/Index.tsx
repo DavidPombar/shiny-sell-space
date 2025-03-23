@@ -1,12 +1,18 @@
-
 import { Helmet } from "react-helmet";
+import { useEffect } from "react";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/sections/Hero";
 import FeaturedProducts from "@/components/sections/FeaturedProducts";
 import Cart from "./Cart";
+import { trackPageView } from "@/lib/analytics";
 
 const Index = () => {
+  // Track page view on component mount
+  useEffect(() => {
+    trackPageView();
+  }, []);
+
   return (
     <>
       <Helmet>
