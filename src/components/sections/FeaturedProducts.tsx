@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { ArrowRight } from "lucide-react";
 import { Link } from "react-router-dom";
@@ -43,6 +42,7 @@ const FeaturedProducts = () => {
           <Link 
             to="/products" 
             className="hidden md:flex items-center text-sm font-medium hover:underline"
+            onClick={() => window.dataLayer.push({ event: "cta_view_all" })}
           >
             View All
             <ArrowRight className="ml-1 h-4 w-4" />
@@ -69,6 +69,7 @@ const FeaturedProducts = () => {
           <Link 
             to="/products" 
             className="inline-flex items-center text-sm font-medium hover:underline"
+            onClick={() => window.dataLayer.push({ event: "cta_view_all" })}
           >
             View All Products
             <ArrowRight className="ml-1 h-4 w-4" />

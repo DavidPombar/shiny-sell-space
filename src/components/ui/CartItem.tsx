@@ -1,4 +1,3 @@
-
 import { Minus, Plus, X } from "lucide-react";
 import { Product } from "@/lib/products";
 import { Button } from "@/components/ui/button";
@@ -31,7 +30,10 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
             variant="ghost"
             size="icon"
             className="h-6 w-6 text-gray-500 hover:text-black -mt-1 -mr-1"
-            onClick={() => removeItem(product.id)}
+            onClick={() => {
+              removeItem(product.id);
+              window.dataLayer.push({ event: "remove_from_cart", product_id: product.id, product_name: product.name });
+            }}
           >
             <X className="h-4 w-4" />
           </Button>
@@ -48,7 +50,10 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-gray-500 hover:text-black"
-              onClick={() => updateQuantity(product.id, quantity - 1)}
+              onClick={() => {
+                updateQuantity(product.id, quantity - 1);
+                window.dataLayer.push({ event: "quantity_change", product_id: product.id, product_name: product.name, quantity: quantity - 1 });
+              }}
               disabled={quantity <= 1}
             >
               <Minus className="h-3 w-3" />
@@ -60,7 +65,10 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-gray-500 hover:text-black"
-              onClick={() => updateQuantity(product.id, quantity + 1)}
+              onClick={() => {
+                updateQuantity(product.id, quantity + 1);
+                window.dataLayer.push({ event: "quantity_change", product_id: product.id, product_name: product.name, quantity: quantity + 1 });
+              }}
             >
               <Plus className="h-3 w-3" />
             </Button>

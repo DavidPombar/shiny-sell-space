@@ -1,4 +1,3 @@
-
 import { ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
@@ -33,14 +32,16 @@ const Hero = () => {
           
           <div className="space-x-4 animate-fade-in-up" style={{ animationDelay: "0.3s" }}>
             <Button asChild size="lg" className="rounded-full px-6">
-              <Link to="/products">
+              <Link to="/products" onClick={() => window.dataLayer.push({ event: "cta_shop_now" })}>
                 Shop Now
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
             </Button>
             
             <Button asChild variant="outline" size="lg" className="rounded-full px-6">
-              <Link to="/about">Learn More</Link>
+              <Link to="/about" onClick={() => window.dataLayer.push({ event: "cta_learn_more" })}>
+                Learn More
+              </Link>
             </Button>
           </div>
         </div>

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
@@ -34,6 +33,7 @@ const ProductCard = ({ product }: ProductCardProps) => {
       className="group block"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onClick={() => window.dataLayer.push({ event: "view_product", product_id: product.id, product_name: product.name })}
     >
       <div className="relative overflow-hidden rounded-lg aspect-square bg-gray-100 mb-4">
         <img
@@ -47,7 +47,10 @@ const ProductCard = ({ product }: ProductCardProps) => {
         />
         
         <Button
-          onClick={handleAddToCart}
+          onClick={e => {
+            handleAddToCart(e);
+            window.dataLayer.push({ event: "add_to_cart", product_id: product.id, product_name: product.name, quantity: 1 });
+          }}
           className="absolute bottom-4 right-4 rounded-full w-10 h-10 p-0 bg-white text-black shadow-md hover:bg-black hover:text-white transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
           size="icon"
         >

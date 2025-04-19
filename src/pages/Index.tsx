@@ -1,12 +1,16 @@
-
 import { Helmet } from "react-helmet";
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import Hero from "@/components/sections/Hero";
 import FeaturedProducts from "@/components/sections/FeaturedProducts";
 import Cart from "./Cart";
+import { useEffect } from "react";
 
 const Index = () => {
+  useEffect(() => {
+    window.dataLayer.push({ event: "page_view", page: "home" });
+  }, []);
+
   return (
     <>
       <Helmet>

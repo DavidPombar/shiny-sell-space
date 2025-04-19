@@ -1,5 +1,4 @@
-
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -49,6 +48,10 @@ const Checkout = () => {
     },
   });
 
+  useEffect(() => {
+    window.dataLayer.push({ event: "page_view", page: "checkout" });
+  }, []);
+
   // If cart is empty, redirect to products page
   if (items.length === 0 && !isOrderComplete) {
     navigate("/products");
@@ -65,10 +68,12 @@ const Checkout = () => {
       setIsOrderComplete(true);
       clearCart();
       setIsSubmitting(false);
+      window.dataLayer.push({ event: "purchase", orderNumber: randomOrderNumber, email: values.email });
     }, 1500);
   };
 
   const returnToShopping = () => {
+    window.dataLayer.push({ event: "continue_shopping" });
     navigate("/products");
   };
 

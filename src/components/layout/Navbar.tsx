@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { ShoppingCart, Menu, X, Search } from "lucide-react";
@@ -59,11 +58,10 @@ const Navbar = () => {
               key={link.path}
               to={link.path}
               className={`text-sm font-medium transition-colors hover:text-black/70 relative after:absolute after:bottom-0 after:left-0 after:h-[1px] after:bg-current after:w-0 hover:after:w-full after:transition-all
-                ${
-                  location.pathname === link.path
-                    ? "text-black after:w-full dark:text-white"
-                    : "text-gray-600 dark:text-gray-300"
-                }`}
+                ${location.pathname === link.path ? "text-black after:w-full dark:text-white" : "text-gray-600 dark:text-gray-300"}`}
+              onClick={() => {
+                window.dataLayer.push({ event: "navigation_click", destination: link.path });
+              }}
             >
               {link.name}
             </Link>
@@ -80,7 +78,10 @@ const Navbar = () => {
             variant="ghost" 
             size="icon" 
             className="rounded-full relative" 
-            onClick={toggleCart}
+            onClick={() => {
+              toggleCart();
+              window.dataLayer.push({ event: "cart_toggle", source: "navbar" });
+            }}
           >
             <ShoppingCart className="h-5 w-5" />
             {totalItems > 0 && (
@@ -95,7 +96,10 @@ const Navbar = () => {
             variant="ghost"
             size="icon"
             className="md:hidden rounded-full"
-            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            onClick={() => {
+              setIsMobileMenuOpen(!isMobileMenuOpen);
+              window.dataLayer.push({ event: "menu_toggle", open: !isMobileMenuOpen });
+            }}
           >
             {isMobileMenuOpen ? (
               <X className="h-5 w-5" />
@@ -127,12 +131,11 @@ const Navbar = () => {
                 key={link.path}
                 to={link.path}
                 className={`text-2xl font-medium transition-colors hover:text-black/70
-                  ${
-                    location.pathname === link.path
-                      ? "text-black"
-                      : "text-gray-600"
-                  }`}
-                onClick={() => setIsMobileMenuOpen(false)}
+                  ${location.pathname === link.path ? "text-black" : "text-gray-600"}`}
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  window.dataLayer.push({ event: "navigation_click", destination: link.path });
+                }}
               >
                 {link.name}
               </Link>

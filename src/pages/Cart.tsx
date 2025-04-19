@@ -1,4 +1,3 @@
-
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { X, ShoppingBag, ArrowRight } from "lucide-react";
@@ -30,9 +29,15 @@ const Cart = () => {
     };
   }, [isCartOpen]);
 
+  // Instrumentar abrir/cerrar carrito
+  useEffect(() => {
+    window.dataLayer.push({ event: "cart_toggle", isCartOpen });
+  }, [isCartOpen]);
+
   const handleCheckout = () => {
-    toggleCart(); // Close the cart
-    navigate("/checkout"); // Navigate to checkout page
+    toggleCart();
+    window.dataLayer.push({ event: "begin_checkout" });
+    navigate("/checkout");
   };
 
   return (
@@ -106,7 +111,10 @@ const Cart = () => {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={clearCart}
+                onClick={() => {
+                  clearCart();
+                  window.dataLayer.push({ event: "clear_cart" });
+                }}
               >
                 Clear Cart
               </Button>

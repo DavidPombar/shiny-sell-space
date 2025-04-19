@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Helmet } from "react-helmet";
 import Navbar from "@/components/layout/Navbar";
@@ -22,6 +21,7 @@ const Products = () => {
     : products;
 
   useEffect(() => {
+    window.dataLayer.push({ event: "page_view", page: "products" });
     // Close filter sidebar when selecting a category on mobile
     if (selectedCategory && window.innerWidth < 768) {
       setIsFilterOpen(false);
@@ -53,7 +53,10 @@ const Products = () => {
                 <Button 
                   variant="outline" 
                   className="w-full flex items-center justify-center" 
-                  onClick={() => setIsFilterOpen(true)}
+                  onClick={() => {
+                    setIsFilterOpen(true);
+                    window.dataLayer.push({ event: "filter_open" });
+                  }}
                 >
                   <Filter className="mr-2 h-4 w-4" />
                   Filter Products
@@ -67,12 +70,11 @@ const Products = () => {
                   <ul className="space-y-2">
                     <li>
                       <button
-                        className={`text-sm ${
-                          selectedCategory === null
-                            ? "font-medium text-black"
-                            : "text-gray-600 hover:text-black"
-                        }`}
-                        onClick={() => setSelectedCategory(null)}
+                        className={`text-sm ${selectedCategory === null ? "font-medium text-black" : "text-gray-600 hover:text-black"}`}
+                        onClick={() => {
+                          setSelectedCategory(null);
+                          window.dataLayer.push({ event: "filter_clear" });
+                        }}
                       >
                         All Products
                       </button>
@@ -80,12 +82,11 @@ const Products = () => {
                     {categories.map((category) => (
                       <li key={category}>
                         <button
-                          className={`text-sm capitalize ${
-                            selectedCategory === category
-                              ? "font-medium text-black"
-                              : "text-gray-600 hover:text-black"
-                          }`}
-                          onClick={() => setSelectedCategory(category)}
+                          className={`text-sm capitalize ${selectedCategory === category ? "font-medium text-black" : "text-gray-600 hover:text-black"}`}
+                          onClick={() => {
+                            setSelectedCategory(category);
+                            window.dataLayer.push({ event: "filter_category", category });
+                          }}
                         >
                           {category}
                         </button>
@@ -118,12 +119,11 @@ const Products = () => {
                 <ul className="space-y-4">
                   <li>
                     <button
-                      className={`text-base ${
-                        selectedCategory === null
-                          ? "font-medium text-black"
-                          : "text-gray-600"
-                      }`}
-                      onClick={() => setSelectedCategory(null)}
+                      className={`text-base ${selectedCategory === null ? "font-medium text-black" : "text-gray-600"}`}
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        window.dataLayer.push({ event: "filter_clear" });
+                      }}
                     >
                       All Products
                     </button>
@@ -131,12 +131,11 @@ const Products = () => {
                   {categories.map((category) => (
                     <li key={category}>
                       <button
-                        className={`text-base capitalize ${
-                          selectedCategory === category
-                            ? "font-medium text-black"
-                            : "text-gray-600"
-                        }`}
-                        onClick={() => setSelectedCategory(category)}
+                        className={`text-base capitalize ${selectedCategory === category ? "font-medium text-black" : "text-gray-600"}`}
+                        onClick={() => {
+                          setSelectedCategory(category);
+                          window.dataLayer.push({ event: "filter_category", category });
+                        }}
                       >
                         {category}
                       </button>
@@ -154,7 +153,10 @@ const Products = () => {
                     </span>
                     <button
                       className="ml-2 text-xs text-gray-500 hover:text-black"
-                      onClick={() => setSelectedCategory(null)}
+                      onClick={() => {
+                        setSelectedCategory(null);
+                        window.dataLayer.push({ event: "filter_clear" });
+                      }}
                     >
                       Clear
                     </button>

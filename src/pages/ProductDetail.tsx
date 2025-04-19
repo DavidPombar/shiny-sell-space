@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Helmet } from "react-helmet";
@@ -28,17 +27,35 @@ const ProductDetail = () => {
     }
   }, [product, navigate]);
 
+  useEffect(() => {
+    window.dataLayer.push({ event: "page_view", page: "product_detail", product_id: product?.id });
+  }, [product]);
+
   if (!product) {
     return null;
   }
 
   // Handle quantity changes
-  const increaseQuantity = () => setQuantity((prev) => prev + 1);
-  const decreaseQuantity = () => setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+  const increaseQuantity = () => {
+    setQuantity((prev) => prev + 1);
+    window.dataLayer.push({ event: "quantity_change", product_id: product?.id, quantity: quantity + 1 });
+  };
+  const decreaseQuantity = () => {
+    setQuantity((prev) => (prev > 1 ? prev - 1 : 1));
+    if (quantity > 1) {
+      window.dataLayer.push({ event: "quantity_change", product_id: product?.id, quantity: quantity - 1 });
+    }
+  };
 
   // Handle add to cart
   const handleAddToCart = () => {
     addItem(product, quantity);
+    window.dataLayer.push({ event: "add_to_cart", product_id: product.id, product_name: product.name, quantity });
+  };
+
+  // Instrumentar cambio de tab
+  const handleTabChange = (tab: string) => {
+    window.dataLayer.push({ event: "tab_change", tab, product_id: product.id });
   };
 
   return (
@@ -133,7 +150,7 @@ const ProductDetail = () => {
               </div>
 
               {/* Product Information Tabs */}
-              <Tabs defaultValue="details" className="w-full mt-8">
+              <Tabs defaultValue="details" className="w-full mt-8" onValueChange={handleTabChange}>
                 <TabsList className="w-full border-b rounded-none bg-transparent justify-start space-x-8">
                   <TabsTrigger 
                     value="details"
