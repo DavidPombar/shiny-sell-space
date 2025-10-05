@@ -78,13 +78,14 @@ const Cart = () => {
               </div>
             ) : (
               <div className="space-y-1">
-                {items.map((item) => (
-                  <CartItem
-                    key={item.product.id}
-                    product={item.product}
-                    quantity={item.quantity}
-                  />
-                ))}
+          {items.map((item, index) => (
+            <CartItem
+              key={`${item.product.id}-${JSON.stringify(item.selectedVariants)}-${index}`}
+              product={item.product}
+              quantity={item.quantity}
+              selectedVariants={item.selectedVariants}
+            />
+          ))}
               </div>
             )}
           </div>

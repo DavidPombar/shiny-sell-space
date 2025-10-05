@@ -16,6 +16,7 @@ const ProductDetail = () => {
   const navigate = useNavigate();
   const [quantity, setQuantity] = useState(1);
   const [activeImage, setActiveImage] = useState(0);
+  const [selectedVariants, setSelectedVariants] = useState<{ [key: string]: string }>({});
   const { addItem } = useCart();
 
   // Get product data
@@ -25,6 +26,13 @@ const ProductDetail = () => {
   useEffect(() => {
     if (!product) {
       navigate("/products");
+    } else if (product.variants) {
+      // Initialize selected variants with first option of each variant
+      const initialVariants: { [key: string]: string } = {};
+      product.variants.forEach(variant => {
+        initialVariants[variant.name] = variant.options[0];
+      });
+      setSelectedVariants(initialVariants);
     }
   }, [product, navigate]);
 
@@ -38,7 +46,15 @@ const ProductDetail = () => {
 
   // Handle add to cart
   const handleAddToCart = () => {
-    addItem(product, quantity);
+    addItem(product, quantity, product.variants ? selectedVariants : undefined);
+  };
+
+  // Handle variant selection
+  const handleVariantChange = (variantName: string, option: string) => {
+    setSelectedVariants(prev => ({
+      ...prev,
+      [variantName]: option
+    }));
   };
 
   return (
@@ -95,6 +111,26 @@ const ProductDetail = () => {
 
               {/* Add to Cart Section */}
               <div className="space-y-6 mb-8">
+                {/* Variants Selection */}
+                {product.variants && product.variants.map((variant) => (
+                  <div key={variant.name}>
+                    <label className="block text-sm font-medium mb-2">{variant.name}</label>
+                    <div className="flex flex-wrap gap-2">
+                      {variant.options.map((option) => (
+                        <Button
+                          key={option}
+                          type="button"
+                          variant={selectedVariants[variant.name] === option ? "default" : "outline"}
+                          className="min-w-20"
+                          onClick={() => handleVariantChange(variant.name, option)}
+                        >
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+
                 {/* Quantity Selector */}
                 <div>
                   <label className="block text-sm font-medium mb-2">Quantity</label>

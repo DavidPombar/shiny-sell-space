@@ -6,15 +6,16 @@ interface OrderSummaryProps {
   items: Array<{
     product: Product;
     quantity: number;
+    selectedVariants?: { [key: string]: string };
   }>;
   totalPrice: number;
 }
 
 const OrderSummary = ({ items, totalPrice }: OrderSummaryProps) => {
-  const shippingCost = 0; // Free shipping
-  const taxRate = 0.08; // 8% tax
-  const taxAmount = totalPrice * taxRate;
-  const orderTotal = totalPrice + taxAmount + shippingCost;
+  const shippingCost: number = 0; // Free shipping
+  const taxRate: number = 0.08; // 8% tax
+  const taxAmount: number = totalPrice * taxRate;
+  const orderTotal: number = totalPrice + taxAmount + shippingCost;
 
   return (
     <Card>
@@ -25,12 +26,17 @@ const OrderSummary = ({ items, totalPrice }: OrderSummaryProps) => {
         <div className="space-y-4">
           {/* Items */}
           <div className="space-y-2">
-            {items.map((item) => (
-              <div key={item.product.id} className="flex justify-between text-sm">
-                <span>
-                  {item.product.name} x {item.quantity}
-                </span>
-                <span className="font-medium">
+            {items.map((item, index) => (
+              <div key={`${item.product.id}-${index}`} className="flex justify-between text-sm">
+                <div className="flex-1">
+                  <div>{item.product.name} x {item.quantity}</div>
+                  {item.selectedVariants && Object.keys(item.selectedVariants).length > 0 && (
+                    <div className="text-xs text-gray-400">
+                      {Object.entries(item.selectedVariants).map(([key, value]) => `${key}: ${value}`).join(", ")}
+                    </div>
+                  )}
+                </div>
+                <span className="font-medium ml-2">
                   ${(item.product.price * item.quantity).toFixed(2)}
                 </span>
               </div>

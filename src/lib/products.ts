@@ -1,4 +1,9 @@
 
+export interface ProductVariant {
+  name: string;
+  options: string[];
+}
+
 export interface Product {
   id: string;
   name: string;
@@ -15,6 +20,7 @@ export interface Product {
     rating: number;
     count: number;
   };
+  variants?: ProductVariant[];
 }
 
 export const products: Product[] = [
@@ -37,7 +43,13 @@ export const products: Product[] = [
     reviews: {
       rating: 4.8,
       count: 256
-    }
+    },
+    variants: [
+      {
+        name: "Color",
+        options: ["Black", "White", "Silver"]
+      }
+    ]
   },
   {
     id: "2",
@@ -58,7 +70,17 @@ export const products: Product[] = [
     reviews: {
       rating: 4.6,
       count: 189
-    }
+    },
+    variants: [
+      {
+        name: "Size",
+        options: ["42mm", "46mm"]
+      },
+      {
+        name: "Band",
+        options: ["Sport", "Leather", "Metal"]
+      }
+    ]
   },
   {
     id: "3",
@@ -100,7 +122,13 @@ export const products: Product[] = [
     reviews: {
       rating: 4.7,
       count: 178
-    }
+    },
+    variants: [
+      {
+        name: "Color",
+        options: ["Black", "Silver", "Rose Gold"]
+      }
+    ]
   },
   {
     id: "5",

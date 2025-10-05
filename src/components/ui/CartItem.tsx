@@ -7,9 +7,10 @@ import { useCart } from "@/context/CartContext";
 interface CartItemProps {
   product: Product;
   quantity: number;
+  selectedVariants?: { [key: string]: string };
 }
 
-const CartItem = ({ product, quantity }: CartItemProps) => {
+const CartItem = ({ product, quantity, selectedVariants }: CartItemProps) => {
   const { updateQuantity, removeItem } = useCart();
 
   return (
@@ -31,12 +32,17 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
             variant="ghost"
             size="icon"
             className="h-6 w-6 text-gray-500 hover:text-black -mt-1 -mr-1"
-            onClick={() => removeItem(product.id)}
+            onClick={() => removeItem(product.id, selectedVariants)}
           >
             <X className="h-4 w-4" />
           </Button>
         </div>
         
+        {selectedVariants && Object.keys(selectedVariants).length > 0 && (
+          <p className="text-xs text-gray-400 mb-1">
+            {Object.entries(selectedVariants).map(([key, value]) => `${key}: ${value}`).join(", ")}
+          </p>
+        )}
         <p className="text-gray-500 text-xs mb-2">{product.category}</p>
         
         {/* Price and Quantity */}
@@ -48,7 +54,7 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-gray-500 hover:text-black"
-              onClick={() => updateQuantity(product.id, quantity - 1)}
+              onClick={() => updateQuantity(product.id, quantity - 1, selectedVariants)}
               disabled={quantity <= 1}
             >
               <Minus className="h-3 w-3" />
@@ -60,7 +66,7 @@ const CartItem = ({ product, quantity }: CartItemProps) => {
               variant="ghost"
               size="icon"
               className="h-7 w-7 text-gray-500 hover:text-black"
-              onClick={() => updateQuantity(product.id, quantity + 1)}
+              onClick={() => updateQuantity(product.id, quantity + 1, selectedVariants)}
             >
               <Plus className="h-3 w-3" />
             </Button>

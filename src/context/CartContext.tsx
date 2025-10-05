@@ -6,13 +6,14 @@ import { toast } from "sonner";
 interface CartItem {
   product: Product;
   quantity: number;
+  selectedVariants?: { [key: string]: string };
 }
 
 interface CartContextType {
   items: CartItem[];
-  addItem: (product: Product, quantity?: number) => void;
-  removeItem: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addItem: (product: Product, quantity?: number, selectedVariants?: { [key: string]: string }) => void;
+  removeItem: (productId: string, selectedVariants?: { [key: string]: string }) => void;
+  updateQuantity: (productId: string, quantity: number, selectedVariants?: { [key: string]: string }) => void;
   clearCart: () => void;
   isCartOpen: boolean;
   toggleCart: () => void;
@@ -55,50 +56,67 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [items, isLoaded]);
 
   // Add an item to the cart
-  const addItem = (product: Product, quantity = 1) => {
+  const addItem = (product: Product, quantity = 1, selectedVariants?: { [key: string]: string }) => {
     setItems((prevItems) => {
       const existingItem = prevItems.find(
-        (item) => item.product.id === product.id
+        (item) => {
+          if (item.product.id !== product.id) return false;
+          if (!selectedVariants && !item.selectedVariants) return true;
+          if (!selectedVariants || !item.selectedVariants) return false;
+          return JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants);
+        }
       );
 
       if (existingItem) {
         toast.success(`Updated quantity for ${product.name}`);
         return prevItems.map((item) =>
-          item.product.id === product.id
+          item.product.id === product.id && 
+          JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants)
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
         toast.success(`Added ${product.name} to your cart`);
-        return [...prevItems, { product, quantity }];
+        return [...prevItems, { product, quantity, selectedVariants }];
       }
     });
   };
 
   // Remove an item from the cart
-  const removeItem = (productId: string) => {
+  const removeItem = (productId: string, selectedVariants?: { [key: string]: string }) => {
     setItems((prevItems) => {
-      const itemToRemove = prevItems.find(item => item.product.id === productId);
+      const itemToRemove = prevItems.find(item => {
+        if (item.product.id !== productId) return false;
+        if (!selectedVariants) return true;
+        return JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants);
+      });
       if (itemToRemove) {
         toast.success(`Removed ${itemToRemove.product.name} from your cart`);
       }
-      return prevItems.filter((item) => item.product.id !== productId);
+      return prevItems.filter((item) => {
+        if (item.product.id !== productId) return true;
+        if (!selectedVariants) return false;
+        return JSON.stringify(item.selectedVariants) !== JSON.stringify(selectedVariants);
+      });
     });
   };
 
   // Update quantity of an item
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, selectedVariants?: { [key: string]: string }) => {
     if (quantity < 1) {
-      removeItem(productId);
+      removeItem(productId, selectedVariants);
       return;
     }
 
     setItems((prevItems) =>
-      prevItems.map((item) =>
-        item.product.id === productId
-          ? { ...item, quantity }
-          : item
-      )
+      prevItems.map((item) => {
+        if (item.product.id !== productId) return item;
+        if (!selectedVariants && !item.selectedVariants) return { ...item, quantity };
+        if (JSON.stringify(item.selectedVariants) === JSON.stringify(selectedVariants)) {
+          return { ...item, quantity };
+        }
+        return item;
+      })
     );
   };
 
