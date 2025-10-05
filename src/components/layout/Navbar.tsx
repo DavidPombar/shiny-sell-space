@@ -4,10 +4,12 @@ import { Link, useLocation } from "react-router-dom";
 import { ShoppingCart, Menu, X, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useCart } from "@/context/CartContext";
+import { SearchDialog } from "@/components/ui/SearchDialog";
 
 const Navbar = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const { toggleCart, totalItems } = useCart();
   const location = useLocation();
 
@@ -72,7 +74,12 @@ const Navbar = () => {
 
         {/* Right Side - Search & Cart */}
         <div className="flex items-center space-x-4 relative z-10">
-          <Button variant="ghost" size="icon" className="rounded-full">
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="rounded-full"
+            onClick={() => setIsSearchOpen(true)}
+          >
             <Search className="h-5 w-5" />
           </Button>
           
@@ -140,6 +147,8 @@ const Navbar = () => {
           </div>
         </div>
       </div>
+      
+      <SearchDialog open={isSearchOpen} onOpenChange={setIsSearchOpen} />
     </header>
   );
 };
