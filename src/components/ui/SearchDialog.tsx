@@ -22,7 +22,7 @@ export const SearchDialog = ({ open, onOpenChange }: SearchDialogProps) => {
   );
 
   const handleProductClick = (productId: string) => {
-    navigate(`/product/${productId}`);
+    navigate(`/products/${productId}`);
     onOpenChange(false);
     setSearchQuery("");
   };
