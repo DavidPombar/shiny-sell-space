@@ -3,17 +3,17 @@ import { useState } from "react";
 import { Helmet } from "react-helmet";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Check, ArrowLeft } from "lucide-react";
+import { Check, ArrowLeft, CreditCard, Package } from "lucide-react";
 
 import Navbar from "@/components/layout/Navbar";
 import Footer from "@/components/layout/Footer";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useCart } from "@/context/CartContext";
 import OrderSummary from "@/components/checkout/OrderSummary";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
@@ -26,6 +26,10 @@ const checkoutFormSchema = z.object({
   address: z.string().min(5, { message: "Address must be at least 5 characters" }),
   city: z.string().min(2, { message: "City must be at least 2 characters" }),
   postalCode: z.string().min(5, { message: "Postal code must be at least 5 characters" }),
+  cardNumber: z.string().min(15, { message: "Card number must be at least 15 characters" }),
+  cardHolder: z.string().min(2, { message: "Cardholder name must be at least 2 characters" }),
+  expiryDate: z.string().min(5, { message: "Expiry date must be in format MM/YY" }),
+  cvv: z.string().min(3, { message: "CVV must be at least 3 characters" }),
 });
 
 type CheckoutFormValues = z.infer<typeof checkoutFormSchema>;
@@ -36,6 +40,7 @@ const Checkout = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOrderComplete, setIsOrderComplete] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [activeTab, setActiveTab] = useState("shipping");
 
   // Initialize form
   const form = useForm<CheckoutFormValues>({
@@ -46,6 +51,10 @@ const Checkout = () => {
       address: "",
       city: "",
       postalCode: "",
+      cardNumber: "",
+      cardHolder: "",
+      expiryDate: "",
+      cvv: "",
     },
   });
 
@@ -70,6 +79,14 @@ const Checkout = () => {
 
   const returnToShopping = () => {
     navigate("/products");
+  };
+
+  const handleContinueToPayment = async () => {
+    // Validate shipping fields only
+    const shippingFields = await form.trigger(["fullName", "email", "address", "city", "postalCode"]);
+    if (shippingFields) {
+      setActiveTab("payment");
+    }
   };
 
   return (
@@ -113,97 +130,196 @@ const Checkout = () => {
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                  {/* Shipping Information */}
+                  {/* Checkout Tabs */}
                   <div className="lg:col-span-2">
-                    <Form {...form}>
-                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-                        <div className="bg-white p-6 rounded-lg border border-gray-200">
-                          <h2 className="text-xl font-medium mb-4">Shipping Information</h2>
-                          
-                          <div className="space-y-4">
-                            <FormField
-                              control={form.control}
-                              name="fullName"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Full Name</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="John Doe" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                    <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+                      <TabsList className="grid w-full grid-cols-2">
+                        <TabsTrigger value="shipping" className="flex items-center gap-2">
+                          <Package className="h-4 w-4" />
+                          Shipping
+                        </TabsTrigger>
+                        <TabsTrigger value="payment" className="flex items-center gap-2" disabled={activeTab === "shipping"}>
+                          <CreditCard className="h-4 w-4" />
+                          Payment
+                        </TabsTrigger>
+                      </TabsList>
 
-                            <FormField
-                              control={form.control}
-                              name="email"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Email</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="your@email.com" type="email" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                      <Form {...form}>
+                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+                          <TabsContent value="shipping" className="mt-0">
+                            <Card className="p-6">
+                              <h2 className="text-xl font-medium mb-4">Shipping Information</h2>
+                              
+                              <div className="space-y-4">
+                                <FormField
+                                  control={form.control}
+                                  name="fullName"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Full Name</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="John Doe" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
 
-                            <FormField
-                              control={form.control}
-                              name="address"
-                              render={({ field }) => (
-                                <FormItem>
-                                  <FormLabel>Address</FormLabel>
-                                  <FormControl>
-                                    <Input placeholder="123 Main St" {...field} />
-                                  </FormControl>
-                                  <FormMessage />
-                                </FormItem>
-                              )}
-                            />
+                                <FormField
+                                  control={form.control}
+                                  name="email"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Email</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="your@email.com" type="email" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
 
-                            <div className="grid grid-cols-2 gap-4">
-                              <FormField
-                                control={form.control}
-                                name="city"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>City</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="New York" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
+                                <FormField
+                                  control={form.control}
+                                  name="address"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Address</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="123 Main St" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
 
-                              <FormField
-                                control={form.control}
-                                name="postalCode"
-                                render={({ field }) => (
-                                  <FormItem>
-                                    <FormLabel>Postal Code</FormLabel>
-                                    <FormControl>
-                                      <Input placeholder="10001" {...field} />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )}
-                              />
-                            </div>
-                          </div>
-                        </div>
+                                <div className="grid grid-cols-2 gap-4">
+                                  <FormField
+                                    control={form.control}
+                                    name="city"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>City</FormLabel>
+                                        <FormControl>
+                                          <Input placeholder="New York" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
 
-                        <Button
-                          type="submit"
-                          className="w-full md:w-auto"
-                          disabled={isSubmitting}
-                        >
-                          {isSubmitting ? "Processing..." : "Complete Purchase"}
-                        </Button>
-                      </form>
-                    </Form>
+                                  <FormField
+                                    control={form.control}
+                                    name="postalCode"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Postal Code</FormLabel>
+                                        <FormControl>
+                                          <Input placeholder="10001" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              </div>
+
+                              <Button
+                                type="button"
+                                className="w-full mt-6"
+                                onClick={handleContinueToPayment}
+                              >
+                                Continue to Payment
+                              </Button>
+                            </Card>
+                          </TabsContent>
+
+                          <TabsContent value="payment" className="mt-0">
+                            <Card className="p-6">
+                              <h2 className="text-xl font-medium mb-4">Payment Information</h2>
+                              
+                              <div className="space-y-4">
+                                <FormField
+                                  control={form.control}
+                                  name="cardNumber"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Card Number</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="1234 5678 9012 3456" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <FormField
+                                  control={form.control}
+                                  name="cardHolder"
+                                  render={({ field }) => (
+                                    <FormItem>
+                                      <FormLabel>Cardholder Name</FormLabel>
+                                      <FormControl>
+                                        <Input placeholder="John Doe" {...field} />
+                                      </FormControl>
+                                      <FormMessage />
+                                    </FormItem>
+                                  )}
+                                />
+
+                                <div className="grid grid-cols-2 gap-4">
+                                  <FormField
+                                    control={form.control}
+                                    name="expiryDate"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>Expiry Date</FormLabel>
+                                        <FormControl>
+                                          <Input placeholder="MM/YY" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+
+                                  <FormField
+                                    control={form.control}
+                                    name="cvv"
+                                    render={({ field }) => (
+                                      <FormItem>
+                                        <FormLabel>CVV</FormLabel>
+                                        <FormControl>
+                                          <Input placeholder="123" type="password" {...field} />
+                                        </FormControl>
+                                        <FormMessage />
+                                      </FormItem>
+                                    )}
+                                  />
+                                </div>
+                              </div>
+
+                              <div className="flex gap-4 mt-6">
+                                <Button
+                                  type="button"
+                                  variant="outline"
+                                  className="flex-1"
+                                  onClick={() => setActiveTab("shipping")}
+                                >
+                                  Back to Shipping
+                                </Button>
+                                <Button
+                                  type="submit"
+                                  className="flex-1"
+                                  disabled={isSubmitting}
+                                >
+                                  {isSubmitting ? "Processing..." : "Complete Purchase"}
+                                </Button>
+                              </div>
+                            </Card>
+                          </TabsContent>
+                        </form>
+                      </Form>
+                    </Tabs>
                   </div>
 
                   {/* Order Summary */}
